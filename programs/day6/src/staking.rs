@@ -28,8 +28,6 @@ use super::*;
 
 pub fn staking_initialize(
     ctx: Context<StakingInitialize>,
-    start_slot: u64,
-    end_slot: u64,
     reward_rate: u64,
     min_staking_duration: i64,
     rewards_per_stake_duration  :Vec<i64>
@@ -43,8 +41,6 @@ pub fn staking_initialize(
     }
     let pool_info = &mut ctx.accounts.pool_info;
     pool_info.admin = ctx.accounts.admin.key();
-    pool_info.start_slot = start_slot;
-    pool_info.end_slot = end_slot;
     pool_info.token = ctx.accounts.staking_token.key();
     pool_info.pool_created_at = dt.timestamp();
     pool_info.min_staking_duration = dt.timestamp() + min_staking_duration;
@@ -103,7 +99,6 @@ pub fn stake(ctx: Context<Stake>, amount: u64) -> Result<()> {
 
     // Update the user's staking information
     user_info.amount += amount;
-    user_info.deposit_slot = clock.slot;
     user_info.reward_debt = 0;
 
     //update pool
@@ -152,7 +147,6 @@ pub fn unstake(ctx: Context<Unstake>) -> Result<()> {
     let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
     token::transfer(cpi_ctx, user_info.amount)?;
     user_info.amount = 0;
-    user_info.deposit_slot = 0;
     user_info.reward_debt = 0;
 
     Ok(())
@@ -284,8 +278,6 @@ pub struct ClaimReward<'info> {
 #[account]
 pub struct PoolInfo {
     pub admin: Pubkey,
-    pub start_slot: u64,
-    pub end_slot: u64,
     pub token: Pubkey,
     pub pool_created_at: i64,
     pub min_staking_duration: i64,
@@ -298,12 +290,12 @@ pub struct PoolInfo {
 pub struct UserInfo {
     pub amount: u64,
     pub reward_debt: u64,
-    pub deposit_slot: u64,
+  
 }
 impl UserInfo {
-    pub const LEN: usize = 8 + 8 + 8;
+    pub const LEN: usize = 8 + 8;
 }
 
 impl PoolInfo {
-    pub const LEN: usize = 32 + 8 + 8 + 32 + 8 + 8 + 8 + 8 + 64;
+    pub const LEN: usize = 32+ 32 + 8 + 8 + 8 + 8 + 64;
 }
