@@ -5,7 +5,7 @@ pub mod staking;
 use staking::*;
 
 
-declare_id!("4AJZvLUdKCaYAjjMgWMh9hsbprpi82HEPvUs3XCxpFBo");
+declare_id!("EfEfWdi4JxpZH6FZ7C3XZqGcb9yArm5fPfLr4A4HVReD");
 
 #[program]
 pub mod day6 {
@@ -39,12 +39,17 @@ pub mod day6 {
    }
 
    //staking.rs calls
-   pub fn staking_initialize(ctx: Context<StakingInitialize>,start_slot:u64, end_slot:u64)->Result<()>{
-    let _staking_initialize = staking::staking_initialize(ctx,start_slot,end_slot);
+   pub fn staking_initialize(ctx: Context<StakingInitialize>,start_slot:u64, end_slot:u64,reward_rate:u64,min_staking_duration:i64,rewards_on_stake_duration:Vec<i64>)->Result<()>{
+    let _staking_initialize = staking::staking_initialize(ctx,start_slot,end_slot,reward_rate, min_staking_duration, rewards_on_stake_duration);
     Ok(())
    }
  pub fn stake(ctx: Context<Stake>,amount:u64)->Result<()>{
     let _stake = staking::stake(ctx, amount);
+    Ok(())
+   }
+
+   pub fn unstake(ctx: Context<Unstake>)->Result<()>{
+    let _unstake = staking::unstake(ctx);
     Ok(())
    }
 }
