@@ -17,6 +17,9 @@ pub enum ErrorCode {
 
     #[msg("Unable to Stake: StakingDuration Ends")]
     UnableToStake,
+
+    #[msg("Unable to UnStake: User Staking is not Ended")]
+    UnableToUnStake,
 }
 
 //array of reward calculation
@@ -115,9 +118,21 @@ pub fn unstake(ctx: Context<Unstake>) -> Result<()> {
     let user_info = &mut ctx.accounts.user_info;
     let pool_info = &mut ctx.accounts.pool_info;
 
-    let clock = Clock::get()?;
-   
-    let reward = (user_info.amount * pool_info.reward_rate) / pool_info.total_staked_amount;
+    let mut index =0;
+    let mut reward=0;
+    let dt: DateTime<Local> = Local::now();
+
+    if dt.timestamp() < pool_info.min_staking_duration {
+        return err!(ErrorCode::UnableToUnStake);
+    }
+
+    //reward multiplier
+     pool_info.rewards_per_stake_duration.iter().for_each(|&element|{
+      if dt.timestamp() >= element {
+         index+=2;
+         reward = (user_info.amount * pool_info.reward_rate * index) / pool_info.total_staked_amount;
+      }
+     });
     // Mint the reward tokens to the user's staking wallet
 
     let cpi_accounts = MintTo {
@@ -147,9 +162,22 @@ pub fn claim_reward(ctx: Context<ClaimReward>) -> Result<()> {
     msg!("Instruction: Claim Reward");
     let user_info = &mut ctx.accounts.user_info;
     let pool_info = &mut ctx.accounts.pool_info;
+    let mut index =0;
+    let mut reward=0;
+    let dt: DateTime<Local> = Local::now();
 
-    // let clock = Clock::get()?;
-    // let elapsed_slots = clock.slot - user_info.deposit_slot;
+    if dt.timestamp() < pool_info.min_staking_duration {
+        return err!(ErrorCode::UnableToUnStake);
+    }
+
+    //reward multiplier
+     pool_info.rewards_per_stake_duration.iter().for_each(|&element|{
+      if dt.timestamp() >= element {
+         index+=2;
+         reward = (user_info.amount * pool_info.reward_rate * index) / pool_info.total_staked_amount;
+      }
+     });
+  
 
     let reward = (user_info.amount * pool_info.reward_rate) / pool_info.total_staked_amount;
     let cpi_accounts = MintTo {
