@@ -29,25 +29,32 @@ use super::*;
 pub fn staking_initialize(
     ctx: Context<StakingInitialize>,
     reward_rate: u64,
-    min_staking_duration: i64,
-    rewards_per_stake_duration  :Vec<i64>
+    min_staking_duration: i64, //in 120 secs
+    rewards_per_stake_duration  :Vec<i64> // 1 hr , 2hr mulitplier by 2
 ) -> Result<()> {
     // let mut rewards_per_stake_duration :Vec<u64> =reward_vec;
     msg!("Instruction: Pool");
 
     let dt: DateTime<Local> = Local::now();
+
     if min_staking_duration < 0 {
         return err!(ErrorCode::InvalidStakingDurtaion).into();
     }
-    let pool_info = &mut ctx.accounts.pool_info;
-    pool_info.admin = ctx.accounts.admin.key();
-    pool_info.token = ctx.accounts.staking_token.key();
+
+    let pool_info: &mut Account<PoolInfo> = &mut ctx.accounts.pool_info;
+    //fixes
+    let admin : &Signer = &ctx.accounts.admin;
+    let token = &ctx.accounts.staking_token;
+    pool_info.admin = admin.key();
+    pool_info.token = token.key();
+
     pool_info.pool_created_at = dt.timestamp();
     pool_info.min_staking_duration = dt.timestamp() + min_staking_duration;
     pool_info.total_staked_amount = 0;
     pool_info.reward_rate = reward_rate;
     pool_info.rewards_per_stake_duration = rewards_per_stake_duration;
     Ok(())
+
 }
 /*
 Reward will be based on the total staked amount in pool
@@ -190,9 +197,9 @@ pub fn claim_reward(ctx: Context<ClaimReward>) -> Result<()> {
 pub struct StakingInitialize<'info> {
     ///CHECK:
     #[account(mut)]
-    pub admin: Signer<'info>,
+    pub admin: Signer<'info>,//provider.wallet
     #[account(init, payer=admin, space=8+PoolInfo::LEN)]
-    pub pool_info: Account<'info, PoolInfo>,
+    pub pool_info: Account<'info, PoolInfo>,//anchor.web3.KeyPair.generate();
     #[account(mut)]
     pub staking_token: InterfaceAccount<'info, Mint>,
     #[account(mut)]
