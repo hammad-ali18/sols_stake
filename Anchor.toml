@@ -7,11 +7,15 @@ skip-lint = false
 [programs.localnet]
 day6 = "4AJZvLUdKCaYAjjMgWMh9hsbprpi82HEPvUs3XCxpFBo"
 
+[programs.devnet] 
+day6 = "4AJZvLUdKCaYAjjMgWMh9hsbprpi82HEPvUs3XCxpFBo"
+
+
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "Devnet"
 wallet = "/home/muhammad/.config/solana/id.json"
 
 [scripts]
